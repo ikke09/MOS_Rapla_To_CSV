@@ -1,0 +1,23 @@
+{
+  "name": "mos_rapla_to_csv",
+  "version": "1.0.0",
+  "description": "Simple node app to convert online rapla calendar from DHBW-Mosbach to local csv-file",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ikke09/MOS_Rapla_To_CSV.git"
+  },
+  "author": "Christian Bechtluft (ikke09)",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/ikke09/MOS_Rapla_To_CSV/issues"
+  },
+  "homepage": "https://github.com/ikke09/MOS_Rapla_To_CSV#readme",
+  "dependencies": {
+    "node-fetch": "^3.1.0"
+  }
+}
