@@ -1,32 +1,56 @@
-import { open } from 'fs/promises';
+import {
+    writeFile
+} from 'fs/promises';
 import fetch from 'node-fetch';
+import ics from 'ics';
 
 const apiUri = 'https://api.stuv.app/rapla/lectures/MOS-TINF20A';
 
-(async () => {
-    let filehandle;
-    let stream;
+const fetchAppointments = async () => {
+    console.log(`Fetching appointments from ${apiUri}`);
+    const res = await fetch(apiUri);
+    const data = await res.json();
+    const appointments = data.filter(obj => obj.lecturer != "");
+    console.log(`Fetched ${appointments.length} appointments. Writing to file...`);
+    return appointments;
+}
+
+const stringToDateArray = (dateString) => {
+    const date = new Date(dateString);
+    return [date.getFullYear(), date.getMonth()+1, date.getDate(), date.getHours(), date.getMinutes()];
+}
+
+const toICS = (appointments) => {
+    return appointments.map(appointment => {
+        return {
+            start: stringToDateArray(appointment.startTime),
+            startOutputType: 'local',
+            end: stringToDateArray(appointment.endTime),
+            endOutputType: 'local',
+            title: appointment.name,
+            location: appointment.rooms[0],
+            status: 'CONFIRMED',
+            busyStatus: 'BUSY',
+        }
+    });
+}
+
+const run = async () => {
     try {
-        filehandle = await open('appointments.csv', 'w+');
-        stream = filehandle.createWriteStream();
-        stream.write("Title;Room;Start;End\n");
-        console.log(`Fetching appointments from ${apiUri}`);
-        const res = await fetch(apiUri);
-        const data = await res.json();
-        const appointments = data.filter(obj => obj.lecturer != "");
-        console.log(`Fetched ${appointments.length} appointments. Writing to file...`);
-        appointments.forEach(appointment => {
-            // const options = { weekday: 'narrow', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'};
-            const startDate = new Date(appointment.startTime).toLocaleString();
-            const endDate = new Date(appointment.endTime).toLocaleString();
-            stream.write(`${appointment.name};${appointment.rooms[0]};${startDate};${endDate}\n`);
+        const appointments = await fetchAppointments();
+        const events = toICS(appointments);
+        ics.createEvents(events, (err, value) => {
+            if(err){
+                console.error(err);
+                return;
+            }
+            writeFile('appointments.ics', value);
+            console.log('Finished!');
         });
-        console.log('Finished!');
     } catch (err) {
-        // handle error
         console.error(err);
     } finally {
-        await stream?.close();
-        await filehandle?.close();
     }
-})();
+}
+
+run();
