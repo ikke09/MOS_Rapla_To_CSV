@@ -11,7 +11,6 @@ const fetchAppointments = async () => {
     const res = await fetch(apiUri);
     const data = await res.json();
     const appointments = data.filter(obj => obj.lecturer != "");
-    console.log(`Fetched ${appointments.length} appointments. Writing to file...`);
     return appointments;
 }
 
@@ -21,6 +20,7 @@ const stringToDateArray = (dateString) => {
 }
 
 const toICS = (appointments) => {
+    console.log(`Converting ${appointments.length} appointments...`);
     return appointments.map(appointment => {
         return {
             start: stringToDateArray(appointment.startTime),
@@ -44,12 +44,12 @@ const run = async () => {
                 console.error(err);
                 return;
             }
+            console.log(`Success. Writing to file...`);
             writeFile('appointments.ics', value);
-            console.log('Finished!');
+            console.log('Finished! Saved to appointments.ics');
         });
     } catch (err) {
         console.error(err);
-    } finally {
     }
 }
 
