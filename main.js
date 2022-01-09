@@ -24,7 +24,7 @@ const stringToDateArray = (dateString) => {
     return [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes()];
 }
 
-const toICS = (appointments) => {
+const toICS = (appointments, calendar) => {
     console.log(`Converting ${appointments.length} appointments...`);
     return appointments.map(appointment => {
         return {
@@ -36,6 +36,16 @@ const toICS = (appointments) => {
             location: appointment.rooms[0],
             status: 'CONFIRMED',
             busyStatus: 'BUSY',
+            calName: calendar,
+            alarms: [{
+                action: 'display',
+                description: appointment.name,
+                trigger: {
+                    minutes: 10,
+                    before: true
+                },
+                repeat: 1,
+            }],
         }
     });
 }
@@ -47,11 +57,12 @@ const run = async () => {
             .option('-o, --output <type>', 'specify output path', './')
             .option('-n, --name <type>', 'specify output file name', 'appointments.ics')
             .option('-c, --course <type>', 'specify course', 'MOS-TINF20A')
+            .option('-cal, --calendar <type>', 'specify the calender to which the events are stored')
 
         program.parse(process.argv);
         const options = program.opts();
         const appointments = await fetchAppointments(options.course);
-        const events = toICS(appointments);
+        const events = toICS(appointments, options.calendar);
         ics.createEvents(events, (err, value) => {
             if (err) {
                 console.error(err);
